@@ -1,3 +1,9 @@
+# Project specific
+sounds/*
+music/*
+!music/partymode_playlist 
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
