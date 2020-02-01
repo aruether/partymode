@@ -20,6 +20,9 @@ motor1_channel = 31
 motor2_channel = 35
 top_limit_channel = 33
 
+# Wacky Wavy Guy Fan
+fan_channel = 40
+
 # Set up GPIO
 gpio.setmode(gpio.BOARD)
 gpio.setup(button_channel, gpio.IN, pull_up_down=gpio.PUD_UP)
@@ -29,6 +32,8 @@ gpio.setup(activated_indicator_channel, gpio.OUT)
 gpio.setup(motor1_channel, gpio.OUT)
 gpio.setup(motor2_channel, gpio.OUT)
 gpio.setup(top_limit_channel, gpio.IN, pull_up_down=gpio.PUD_UP)
+gpio.setup(fan_channel, gpio.OUT)
+
 
 # Handle keyboard break
 def signal_handler(signal, frame):
@@ -164,6 +169,14 @@ def raise_platform():
         gpio.output(motor1_channel, gpio.HIGH)
         gpio.output(motor2_channel, gpio.LOW)   
 
+def stop_fan():
+    print "Stopping fan"
+    gpio.output(fan_channel, gpio.HIGH)
+
+def start_fan():
+    print "Starting fan"
+    gpio.output(fan_channel, gpio.LOW)
+
 # Setup to handle keyboard interrupts (control-C)
 signal.signal(signal.SIGINT, signal_handler)
 
@@ -174,6 +187,7 @@ gpio.output(armed_indicator_channel, gpio.input(armed_indicator_channel))
 gpio.output(activated_indicator_channel, gpio.LOW)
 
 stop_motors()
+stop_fan()
 
 gpio.add_event_detect(key_channel, gpio.BOTH, callback=check_event, bouncetime=400)
 gpio.add_event_detect(button_channel, gpio.RISING, callback=check_event, bouncetime=300)
@@ -184,7 +198,5 @@ raise_platform()
 
 while True:
     # trying not to waste cycles on the pi
-
-    # print "motor 1: " + str(gpio.input(motor1_channel))
-    # print "motor 2: " + str(gpio.input(motor2_channel)) + "\n"
     time.sleep(2)
+
