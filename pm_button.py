@@ -16,8 +16,8 @@ armed_indicator_channel =  18
 activated_indicator_channel = 29 
 
 # Motor IO
-motor1_channel = 31
-motor2_channel = 35
+motor1_channel = 35
+motor2_channel = 32
 top_limit_channel = 33
 
 # Wacky Wavy Guy Fan
@@ -168,14 +168,16 @@ def raise_platform():
     if gpio.input(top_limit_channel):
         gpio.output(motor1_channel, gpio.HIGH)
         gpio.output(motor2_channel, gpio.LOW)   
+    else:
+        print "Platform already at top"
 
 def stop_fan():
     print "Stopping fan"
-    gpio.output(fan_channel, gpio.HIGH)
+    gpio.output(fan_channel, gpio.LOW)
 
 def start_fan():
     print "Starting fan"
-    gpio.output(fan_channel, gpio.LOW)
+    gpio.output(fan_channel, gpio.HIGH)
 
 # Setup to handle keyboard interrupts (control-C)
 signal.signal(signal.SIGINT, signal_handler)
@@ -195,6 +197,7 @@ gpio.add_event_detect(top_limit_channel, gpio.FALLING, callback=check_event, bou
 
 print "Make sure platform is raised at the start"
 raise_platform()
+
 
 while True:
     # trying not to waste cycles on the pi
