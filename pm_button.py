@@ -23,16 +23,26 @@ top_limit_channel = 33
 # Wacky Wavy Guy Fan
 fan_channel = 40
 
+# System control
+reboot_channel = 37
+shutdown_channel = 38
+
 # Set up GPIO
 gpio.setmode(gpio.BOARD)
+
 gpio.setup(button_channel, gpio.IN, pull_up_down=gpio.PUD_UP)
 gpio.setup(key_channel, gpio.IN, pull_up_down=gpio.PUD_UP)
 gpio.setup(armed_indicator_channel, gpio.OUT)
 gpio.setup(activated_indicator_channel, gpio.OUT)
+
 gpio.setup(motor1_channel, gpio.OUT)
 gpio.setup(motor2_channel, gpio.OUT)
 gpio.setup(top_limit_channel, gpio.IN, pull_up_down=gpio.PUD_UP)
+
 gpio.setup(fan_channel, gpio.OUT)
+
+gpio.setup(reboot_channel, gpio.IN, pull_up_down=gpio.PUD_UP)
+gpio.setup(shutdown_channel, gpio.IN, pull_up_down=gpio.PUD_UP)
 
 
 # Handle keyboard break
@@ -70,6 +80,10 @@ def check_event(channel):
         print "Top limit switch activated"
         if platform_rising(): 
             stop_motors()
+    elif channel==reboot_channel:
+        reboot_os()
+    elif channel==shutdown_channel:
+        shutdown_os()     
     return
 
 
@@ -179,6 +193,18 @@ def start_fan():
     print "Starting fan"
     gpio.output(fan_channel, gpio.HIGH)
 
+
+
+def reboot_os():
+    # Reboot the operating system
+    print "Rebooting"
+    os.system("sudo reboot now")
+
+def shutdown_os():
+    # Reboot the operating system
+    print "Shutting down"
+    os.system("sudo shutdown now")
+
 # Setup to handle keyboard interrupts (control-C)
 signal.signal(signal.SIGINT, signal_handler)
 
@@ -194,6 +220,8 @@ stop_fan()
 gpio.add_event_detect(key_channel, gpio.BOTH, callback=check_event, bouncetime=400)
 gpio.add_event_detect(button_channel, gpio.RISING, callback=check_event, bouncetime=300)
 gpio.add_event_detect(top_limit_channel, gpio.FALLING, callback=check_event, bouncetime=100)
+gpio.add_event_detect(reboot_channel, gpio.FALLING, callback=check_event, bouncetime=300)
+gpio.add_event_detect(shutdown_channel, gpio.FALLING, callback=check_event, bouncetime=300)
 
 print "Make sure platform is raised at the start"
 raise_platform()
