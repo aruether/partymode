@@ -7,7 +7,11 @@ import subprocess
 import sys
 import signal
 import threading
+import datetime
 
+# Volume controls
+day_volume = 70
+night_volume = 100
 
 # Control box IO
 key_channel = 22
@@ -47,18 +51,18 @@ gpio.setup(shutdown_channel, gpio.IN, pull_up_down=gpio.PUD_UP)
 
 # Handle keyboard break
 def signal_handler(signal, frame):
-    print "Cleaning up"
+    print("Cleaning up")
     gpio.cleanup()
     sys.exit(0)
 
 # Stop light display
 def stop_party():
     global lights
-    print "Stop the party!"
+    print("Stop the party!")
     lights = False
     gpio.output(activated_indicator_channel, gpio.LOW)
     ret = subprocess.check_output(["stop_music_and_lights"], stderr=subprocess.STDOUT)
-    print ret
+    print(ret)
 
     raise_platform()
 
@@ -67,7 +71,7 @@ def stop_party():
 
 # Check on the state of the key
 def check_event(channel):
-    print "Event triggered on channel " + str(channel)
+    print("Event triggered on channel " + str(channel))
 
     if channel==key_channel:
         check_key()
@@ -77,7 +81,7 @@ def check_event(channel):
         # If the platform is being raised, stop the motors. 
         # Only check when the platform is being raised, because debounce problems
         # can trigger limit switch output when turning off
-        print "Top limit switch activated"
+        print("Top limit switch activated")
         if platform_rising(): 
             stop_motors()
     elif channel==reboot_channel:
@@ -103,13 +107,13 @@ def check_key():
     armed = gpio.input(key_channel)
 
     if armed:
-        print "Armed"
+        print("Armed")
         gpio.output(armed_indicator_channel, gpio.HIGH)
     else:
-        print "Disarmed"
+        print("Disarmed")
         gpio.output(armed_indicator_channel, gpio.LOW)
-    	if lights:
-        	stop_party()
+        if lights:
+            stop_party()
 
     return
 
@@ -138,16 +142,29 @@ def check_button():
 
 def start_party():
     global lights
-    print "Starting the party"
+    print("Starting the party")
     gpio.output(activated_indicator_channel, gpio.HIGH)
     lights = True
+
+
+    # Set volume based on day/time
+    volume = night_volume # Assume night volume
+    currentDateTime = datetime.datetime.now()
+
+    if currentDateTime.weekday()<5:
+        # It is a weekday.  Check to see if the time is 9-5
+        if currentDateTime.time() > datetime.time(9,0,0,0) and currentDateTime.time() < datetime.time(17,0,0,0):
+            volume = day_volume
+    print("Setting volume command: 'amixer -q -M sset PCM {}%'".format(volume))
+    os.system("amixer -q -M sset PCM {}%".format(volume))
+
     lower_platform()
 
     # https://stackoverflow.com/a/2581943
     # Runs the musicshowpi call in a subprocess.Popen, and then raises the platform when the subprocess completes.
     def runInThread():
         global lights
-        print "Starting a thread to lightshowpi"
+        print("Starting a thread to lightshowpi")
         command = "sudo python  /home/pi/lightshowpi/py/synchronized_lights.py".split()
         proc =  subprocess.Popen(command, stdin=subprocess.PIPE)
         proc.wait()
@@ -164,45 +181,45 @@ def start_party():
 
 # Lower platform using motors
 def lower_platform():
-    print "Lowering platform"
+    print("Lowering platform")
     gpio.output(motor1_channel, gpio.LOW)
     gpio.output(motor2_channel, gpio.HIGH)
     threading.Timer(15, stop_motors).start()
 
 def stop_motors():
-    print "Stopping motors"
+    print("Stopping motors")
     gpio.output(motor1_channel, gpio.LOW)
     gpio.output(motor2_channel, gpio.LOW)
 
 def raise_platform():
     # Raise the platform
-    print "Raising platform"
+    print("Raising platform")
     # Make sure top limit switch isn't already activated
     # Interrupt will handle end turning off lift motor 
     if gpio.input(top_limit_channel):
         gpio.output(motor1_channel, gpio.HIGH)
         gpio.output(motor2_channel, gpio.LOW)   
     else:
-        print "Platform already at top"
+        print("Platform already at top")
 
 def stop_fan():
-    print "Stopping fan"
+    print("Stopping fan")
     gpio.output(fan_channel, gpio.LOW)
 
 def start_fan():
-    print "Starting fan"
+    print("Starting fan")
     gpio.output(fan_channel, gpio.HIGH)
 
 
 
 def reboot_os():
     # Reboot the operating system
-    print "Rebooting"
+    print("Rebooting")
     os.system("sudo reboot now")
 
 def shutdown_os():
     # Reboot the operating system
-    print "Shutting down"
+    print("Shutting down")
     os.system("sudo shutdown now")
 
 # Setup to handle keyboard interrupts (control-C)
@@ -223,7 +240,7 @@ gpio.add_event_detect(top_limit_channel, gpio.FALLING, callback=check_event, bou
 gpio.add_event_detect(reboot_channel, gpio.FALLING, callback=check_event, bouncetime=300)
 gpio.add_event_detect(shutdown_channel, gpio.FALLING, callback=check_event, bouncetime=300)
 
-print "Make sure platform is raised at the start"
+print("Make sure platform is raised at the start")
 raise_platform()
 
 
