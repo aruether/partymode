@@ -156,7 +156,7 @@ def start_party():
         if currentDateTime.time() > datetime.time(9,0,0,0) and currentDateTime.time() < datetime.time(17,0,0,0):
             volume = day_volume
     print("Setting volume command: 'amixer -q -M sset PCM {}%'".format(volume))
-    os.system("amixer -q -M sset PCM {}%".format(volume))
+    os.system("amixer -c 1 -q sset Speaker {}%".format(volume))
 
     lower_platform()
 
@@ -240,8 +240,8 @@ gpio.add_event_detect(top_limit_channel, gpio.FALLING, callback=check_event, bou
 gpio.add_event_detect(reboot_channel, gpio.FALLING, callback=check_event, bouncetime=300)
 gpio.add_event_detect(shutdown_channel, gpio.FALLING, callback=check_event, bouncetime=300)
 
-print("Make sure platform is raised at the start")
-raise_platform()
+print("Make sure everything is reset at start")
+stop_party()
 
 
 while True:

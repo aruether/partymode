@@ -21,6 +21,4 @@ config.read(os.path.dirname(os.path.realpath(__file__)) + '/config.ini')
 url =  config['RecordSong']['form_url'] + "/formResponse"
 form_data = {'entry.2022304067':sys.argv[1]}
 r = requests.post(url, data=form_data)
-print (r)
-print (r.status_code)
-print (r.text)
+print ("Google Form submit status: {}".format(r.status_code))
