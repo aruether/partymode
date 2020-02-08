@@ -2,6 +2,7 @@
 sounds/*
 music/*
 !music/partymode_playlist 
+*.ini
 
 
 # Byte-compiled / optimized / DLL files
