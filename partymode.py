@@ -122,12 +122,13 @@ def check_button():
 
     global lights
     global armed
+    global raising_platform 
 
     # Short debounce
     time.sleep(0.1)
 
     # Check to see if button is pressed and system is armed
-    if (not gpio.input(button_channel)) and armed:
+    if (not gpio.input(button_channel)) and armed and not raising_platform:
         if not lights:
             start_party()
         else:
@@ -187,18 +188,25 @@ def lower_platform():
     threading.Timer(15, stop_motors).start()
 
 def stop_motors():
+    global raising_platform
+    
     print("Stopping motors")
     gpio.output(motor1_channel, gpio.LOW)
     gpio.output(motor2_channel, gpio.LOW)
+    raising_platform=False 
+
 
 def raise_platform():
+    global raising_platform
+
     # Raise the platform
     print("Raising platform")
     # Make sure top limit switch isn't already activated
     # Interrupt will handle end turning off lift motor 
     if gpio.input(top_limit_channel):
         gpio.output(motor1_channel, gpio.HIGH)
-        gpio.output(motor2_channel, gpio.LOW)   
+        gpio.output(motor2_channel, gpio.LOW)  
+        raising_platform=True 
     else:
         print("Platform already at top")
 
@@ -227,6 +235,7 @@ signal.signal(signal.SIGINT, signal_handler)
 
 # Initial state
 lights = False
+raising_platform = False 
 armed = gpio.input(key_channel)
 gpio.output(armed_indicator_channel, gpio.input(armed_indicator_channel))
 gpio.output(activated_indicator_channel, gpio.LOW)
