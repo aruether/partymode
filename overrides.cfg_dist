@@ -29,7 +29,7 @@ pwm_range = 100
 mode = playlist
 playlist_path = /home/pi/partymode/partymode_playlist
 randomize_playlist = yes
-
+songname_command = python3 /home/pi/partymode/recordsong.py
 
 
 # Default is to be on for 10 seconds and off for 1 with no channel_control overrides
@@ -40,13 +40,13 @@ preshow_configuration =
 		"transitions": [
 			{
 				"type": "off",
-				"duration": 15,
+				"duration": 13,
 				"channel_control": {
 					"off": [4]
 				}
 			}
 		],
-		"audio_file": "/home/pi/partymode/sounds/machine.mp3"
+		"audio_file": "/home/pi/partymode/sounds/machine4.mp3"
 	}	
 
 

@@ -135,7 +135,7 @@ def check_button():
             stop_party()
 
     # Give some time for debouncing
-    time.sleep(0.2)
+    time.sleep(0.1)
 
     return
 
@@ -159,7 +159,7 @@ def start_party():
     print("Setting volume command: 'amixer -q -M sset PCM {}%'".format(volume))
     os.system("amixer -c 1 -q sset Speaker {}%".format(volume))
 
-    lower_platform()
+    threading.Timer(2, lower_platform).start()
 
     # https://stackoverflow.com/a/2581943
     # Runs the musicshowpi call in a subprocess.Popen, and then raises the platform when the subprocess completes.
@@ -237,7 +237,7 @@ signal.signal(signal.SIGINT, signal_handler)
 lights = False
 raising_platform = False 
 armed = gpio.input(key_channel)
-gpio.output(armed_indicator_channel, gpio.input(armed_indicator_channel))
+gpio.output(armed_indicator_channel, gpio.input(key_channel))
 gpio.output(activated_indicator_channel, gpio.LOW)
 
 stop_motors()
